@@ -437,7 +437,7 @@ pheatmap(
 
 
 
-####### Feature selection (new sce without spike ins)
+####### Feature selection ##
 
 #Quality control can be achieved without the previous methods with M3Drop library
 set.seed(1)
@@ -577,7 +577,7 @@ rowData(imp)$feature_symbol <- rownames(imp)
 
 imp <- sc3(imp, ks = 10, gene_filter = FALSE)
 
-#clusters (sc3 derived) comparison with cell types (lower value the previous part (sc3 on the transformed data: QC, batch effect removal))
+#clusters (sc3 derived) comparison with cell types (lower value than the previous part (sc3 on the transformed data: QC, batch effect removal))
 adjustedRandIndex(colData(reads)$cell_type, colData(imp)$sc3_10_clusters) #0.58
 
 
