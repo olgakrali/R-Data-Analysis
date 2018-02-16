@@ -56,7 +56,7 @@ mitochondria <- grep ("^MT", rownames(data1), data1, value = TRUE)
 isSpike(sce, "ERCC") <- rownames(sce) %in% erccgenes
 isSpike(sce, "MT") <- rownames(sce) %in% mitochondria
   
-#ntroduce spike in in the single cell experiment
+#introduce spike in in the single cell experiment
 reads <- calculateQCMetrics(
   sce,
   feature_controls = list(
@@ -116,7 +116,7 @@ plotPhenoData(
 
 filter_by_ERCC <- reads$pct_counts_ERCC < 0.25
 
-#Use the filters created above and store it as a new variable (we did manual manipulation)
+#Use the filters created above and store it as a new variable (we did it manually)
 #to the filters, maybe it is not 100% accurate)
 
 #Filter cells, I leaves 416/446 cells
@@ -497,50 +497,6 @@ PCA_genes = names(score[1:1500])
 
 
 
-#9) Pseudo-time construction  (I do not think it helps us somehow!)
-
-set.seed(1)
-#TSCAN   (a combination of clustering and pseudotime analysis)
-
-reads
-cells <- colData(reads)$cell_type
-lcoun <- logcounts(reads)
-colnames(lcoun) <- cells
-
-proclcoun <- TSCAN::preprocess(lcoun)
-colnames(proclcoun) <- 1:ncol(lcoun)
-lcounclust <- TSCAN::exprmclust(proclcoun, clusternum = 9)
-TSCAN::plotmclust(lcounclust) #graph 
-
-lcounorderTSCAN <- TSCAN::TSCANorder(lcounclust, orderonly = F)
-pseudotime_order_tscan <- as.character(lcounorderTSCAN$sample_name)
-
-cells[lcounclust$clusterid == 9]
-
-
-colours <- rainbow(n = 9) 
-tmp <-
-  factor(
-    cells[as.numeric(pseudotime_order_tscan)],
-    levels = c("neurons", "oligodendrocytes", "hybrid", "OPC", "fetal_replicating", "fetal_quiescent", "astrocytes", "endothelial", "microglia")
-  )
-
-plot(
-  as.numeric(tmp),
-  xlab = "Pseudotime Order",
-  ylab = "Timepoint",
-  col = colours[tmp],
-  pch = 16
-)
-
-#we have different cell types not diffent different cell states (I do not know how we could utilize that process in this data)
-
-colnames(lcoun) <- 1:ncol(lcoun)
-TSCAN::singlegeneplot(
-  lcoun[rownames(lcoun) == "ACP5", ],   #trace a gene from one cell type to the other
-  lcounorderTSCAN
-)
-
 #### Imputation ####
 ## Gene drop outs###
 
@@ -569,6 +525,16 @@ plotPCA(
   colour_by = "cell_type"
 )
 
+plotTSNE(
+  imp,
+  exprs_values = "logcounts",
+  perplexity = 130,
+  colour_by = "cell_type",
+  size_by = "total_features",
+  rand_seed = 123456
+)
+
+
 #How imputed data will respond to clustering
 imp <- sc3_estimate_k(imp)
 metadata(imp)$sc3$k_estimation   #10 clusters (closer to the cell types number)
@@ -584,6 +550,15 @@ adjustedRandIndex(colData(reads)$cell_type, colData(imp)$sc3_10_clusters) #0.58
 plotPCA(
   imp,
   colour_by = "sc3_10_clusters"
+)
+
+plotTSNE(
+  imp,
+  exprs_values = "logcounts",
+  perplexity = 130,
+  colour_by = "sc3_10_clusters",
+  size_by = "total_features",
+  rand_seed = 123456
 )
 
 
